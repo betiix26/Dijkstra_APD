@@ -2,12 +2,21 @@
 //Implementation of Dijkstra's algorithm in C++ which finds 
 //the shortest path from a start node to every other node in a weighted graph.
 //Time complexity: O(n^2)
-
+#include <fstream>
 #include <iostream>
 #include <limits>
+#include <sstream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
-#define MAXV 1000
+//#define MAXV 1000
+
+int noNodes;
+
+fstream in_file;
+fstream out_file;
 
 class EdgeNode {
 public:
@@ -26,7 +35,7 @@ EdgeNode::EdgeNode(int key, int weight) {
 class Graph {
     bool directed;
 public:
-    EdgeNode* edges[MAXV + 1];
+    vector<EdgeNode*> edges; // { new EdgeNode[noNodes]{} };
     Graph(bool);
     ~Graph();
     void insert_edge(int, int, int, bool);
@@ -35,15 +44,15 @@ public:
 
 Graph::Graph(bool directed) {
     this->directed = directed;
-    for (int i = 1; i < (MAXV + 1); i++) {
-        this->edges[i] = NULL;
+    for (int i = 0; i < (noNodes); i++) {
+        edges.push_back(NULL);
     }
 }
 
 Graph::~Graph() {/*Not necesary*/ }
 
 void Graph::insert_edge(int x, int y, int weight, bool directed) {
-    if (x > 0 && x < (MAXV + 1) && y > 0 && y < (MAXV + 1)) {
+    if (x > 0 && x < (noNodes) && y > 0 && y < (noNodes)) {
         EdgeNode* edge = new EdgeNode(y, weight);
         edge->next = this->edges[x];
         this->edges[x] = edge;
@@ -54,7 +63,7 @@ void Graph::insert_edge(int x, int y, int weight, bool directed) {
 }
 
 void Graph::print() {
-    for (int v = 1; v < (MAXV + 1); v++) {
+    for (int v = 0; v < (noNodes); v++) {
         if (this->edges[v] != NULL) {
             cout << "Vertex " << v << " has neighbors: " << endl;
             EdgeNode* curr = this->edges[v];
@@ -66,17 +75,17 @@ void Graph::print() {
     }
 }
 
-void init_vars(bool discovered[], int distance[], int parent[]) {
-    for (int i = 1; i < (MAXV + 1); i++) {
-        discovered[i] = false;
-        distance[i] = std::numeric_limits<int>::max();
-        parent[i] = -1;
+void init_vars(vector<bool> &discovered, vector<int> &distance, vector<int> &parent) {
+    for (int i = 0; i < (noNodes); i++) {
+        discovered.push_back(false);
+        distance.push_back(std::numeric_limits<int>::max());
+        parent.push_back(-1);
     }
 }
 
-void dijkstra_shortest_path(Graph* g, int parent[], int distance[], int start) {
+void dijkstra_shortest_path(Graph* g, vector<int> &parent, vector<int> &distance, int start) {
 
-    bool discovered[MAXV + 1];
+    vector<bool> discovered;
     EdgeNode* curr;
     int v_curr;
     int v_neighbor;
@@ -107,7 +116,7 @@ void dijkstra_shortest_path(Graph* g, int parent[], int distance[], int start) {
 
         //set the next current vertex to the vertex with the smallest distance
         smallest_dist = std::numeric_limits<int>::max();
-        for (int i = 1; i < (MAXV + 1); i++) {
+        for (int i = 0; i < (noNodes); i++) {
             if (!discovered[i] && (distance[i] < smallest_dist)) {
                 v_curr = i;
                 smallest_dist = distance[i];
@@ -116,41 +125,58 @@ void dijkstra_shortest_path(Graph* g, int parent[], int distance[], int start) {
     }
 }
 
-void print_shortest_path(int v, int parent[]) {
-    if (v > 0 && v < (MAXV + 1) && parent[v] != -1) {
+void print_shortest_path(int v, vector<int> &parent) {
+    if (v >= 0 && v < (noNodes) && parent[v] != -1) {
         cout << parent[v] << " ";
         print_shortest_path(parent[v], parent);
     }
 }
 
-void print_distances(int start, int distance[]) {
-    for (int i = 1; i < (MAXV + 1); i++) {
-        if (distance[i] != std::numeric_limits<int>::max()) {
+void print_distances(int start, vector<int> &distance) {
+    for (int i = 0; i < (noNodes); i++) {
             cout << "Shortest distance from " << start << " to " << i << " is: " << distance[i] << endl;
-        }
+        
     }
+}
+
+string int_to_string(int x) {
+    stringstream ss;
+    ss << x;
+    return ss.str();
 }
 
 int main() {
 
-    Graph* g = new Graph(false);
-    int parent[MAXV + 1];
-    int distance[MAXV + 1];
-    int start = 1;
+    string testFile = "test{i}.in";
+    for (int i = 0; i <= 9; i++) {
 
-    g->insert_edge(1, 2, 4, false);
-    g->insert_edge(1, 3, 1, false);
-    g->insert_edge(3, 2, 1, false);
-    g->insert_edge(3, 4, 5, false);
-    g->insert_edge(2, 4, 3, false);
-    g->insert_edge(2, 5, 1, false);
-    g->insert_edge(4, 5, 2, false);
+        in_file.open("test" + int_to_string(i + 1));
 
-    dijkstra_shortest_path(g, parent, distance, start);
-    //print shortest path from vertex 1 to 5
-    print_shortest_path(5, parent);
-    print_distances(start, distance);
+        int nrNoduri, nrMuchii;
+        in_file >> nrNoduri >> nrMuchii;
 
-    delete g;
+        noNodes = nrNoduri;
+
+        Graph* g = new Graph(false);
+        vector<int> parent;
+        vector<int> distance;
+
+        int start = 1;
+
+        int a, b, c;
+        for (int muc = 0; muc < nrMuchii; muc++) {
+            in_file >> a >> b >> c;
+            g->insert_edge(a, b, c, false);
+        }
+
+        dijkstra_shortest_path(g, parent, distance, start);
+        
+        print_distances(start, distance);
+
+        cout << endl << endl << "-------------------------------- TEST: " << i + 1 << " finished-----------------------" << endl << endl;
+        delete g;
+        in_file.close();
+    }
+
     return 0;
 }
