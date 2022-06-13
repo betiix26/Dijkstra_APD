@@ -5,7 +5,7 @@
  *
  * Output:  lungimea celui mai scurt drum de la varful 0 la varful v (Dijkstra's shortest path algorithm)
  *       
- * Rulare: mpiexec -n 6 MpiDijkstra.exe 
+ * Rulare: mpiexec -n 6 MpiDijkstra.exe
  * 
  * Algoritm: Matricea este impartita pe coloane, astfel incat fiecare proces sa primeasca n / p coloane.
  * In fiecare iteratie, fiecare proces isi gaseste varful local cu cea mai scurta distanta de la varful sursa 0. 
@@ -23,7 +23,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
+#include <fstream>
+
 #define INFINITY 1000000
+
+std::fstream in_file;
 
 int Read_n(int my_rank, MPI_Comm comm);
 MPI_Datatype Build_blk_col_type(int n, int loc_n);
@@ -88,8 +92,12 @@ int Read_n(int my_rank, MPI_Comm comm) { //citeste nr de randuri din matrice pe 
 
     int n; 
 
-    if (my_rank == 0)       
+    if (my_rank == 0)
+    {
+        in_file.open("C:\\Users\\Beti\\Desktop\\test.txt");
         scanf("%d", &n);    
+
+    }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, comm);
     return n; //n -> nr de randuri din matrice
